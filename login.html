@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page with Firebase</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('BACKGROUND.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 95vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .login-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 50%;
+            max-width: 300px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 20px;
+            font-size: 28px;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 1px;
+            font-size: 14px;
+            color: #555;
+        }
+        input[type="text"], input[type="password"] {
+            width: 50%;
+            padding: 8px 16px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            transition: background-color 0.3s ease;
+        }
+        input[type="text"]:focus, input[type="password"]:focus {
+            background-color: #eef6fc;
+            outline: none;
+            border: 2px solid #0095f6;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            background-color: #0095f6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #007bbf;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="button" onclick="login()">Login</button>
+            <button type="button" onclick="signup()">Sign Up</button>
+        </form>
+    </div>
+
+    <!-- Firebase Configuration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBUtgwiu95ep-MOVwZ9GA2MvKkJprqkRMM",
+            authDomain: "omnamonarayana-60df8.firebaseapp.com",
+            projectId: "omnamonarayana-60df8",
+            storageBucket: "omnamonarayana-60df8.appspot.com",
+            messagingSenderId: "475382443139",
+            appId: "1:475382443139:web:167bdf98192fff5b8c3fb6",
+            measurementId: "G-S4SH100CHS"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Login function
+        window.login = async function() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, username, password);
+                console.log('Login successful:', userCredential.user);
+                localStorage.setItem('useremail', userCredential.user.email); // Store user email
+                window.location.href = "investments.html";  // Redirect to the investments page
+            } catch (error) {
+                console.error('Error during login:', error.message);
+                alert('Login failed: ' + error.message);
+            }
+        };
+
+        // Signup function
+        window.signup = async function() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, username, password);
+                console.log('Signup successful:', userCredential.user);
+                alert('Signup successful!');
+            } catch (error) {
+                console.error('Error during signup:', error.message);
+                alert('Signup failed: ' + error.message);
+            }
+        };
+    </script>
+</body>
+</html>

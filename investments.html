@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investments</title>
+    <style>
+        /* Add some basic styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        #platformSelect {
+            margin-bottom: 20px;
+        }
+        .no-data {
+            text-align: center;
+            font-style: italic;
+            color: #888;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #0095f6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #007bbf;
+        }
+        /* Modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="number"], input[type="date"], select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .delete-btn {
+            background-color: #e74c3c;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+        .update-btn {
+            background-color: #f39c12;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .update-btn:hover {
+            background-color: #e67e22;
+        }
+        /* Loading indicator styles */
+        .loading {
+            display: none;
+            text-align: center;
+            font-size: 18px;
+            color: #0095f6;
+        }
+    </style>
+</head>
+<body>
+    <h1>User Investments</h1>
+    <select id="platformSelect" onchange="handlePlatformChange()">
+        <option value="GROWW">GROWW</option>
+        <option value="KITE">KITE</option>
+    </select>
+
+    <!-- Button to open the modal for adding investment -->
+    <button id="openModalBtn" onclick="openModal()">Add Investment</button>
+
+    <!-- The Modal for Adding Investment -->
+    <div id="investmentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Add Investment</h2>
+            <form id="addInvestmentForm" onsubmit="event.preventDefault(); addInvestment();">
+                <div class="form-group">
+                    <label for="shareName">Share Name:</label>
+                    <input type="text" id="shareName" name="shareName" required>
+                </div>
+                <div class="form-group">
+                    <label for="boughtPrice">Bought Price:</label>
+                    <input type="number" id="boughtPrice" name="boughtPrice" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="investedValue">Invested Value:</label>
+                    <input type="number" id="investedValue" name="investedValue" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" id="quantity" name="quantity" required>
+                </div>
+                <div class="form-group">
+                    <label for="date">Date:</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="platform">Platform:</label>
+                    <select id="platform" name="platform" required>
+                        <option value="GROWW">GROWW</option>
+                        <option value="KITE">KITE</option>
+                    </select>
+                </div>
+                <button type="submit">Add Investment</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- The Modal for Updating Investment -->
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeUpdateModal()">&times;</span>
+            <h2>Update Investment</h2>
+            <form id="updateInvestmentForm" onsubmit="event.preventDefault(); updateInvestment();">
+                <input type="hidden" id="updateId">
+                <div class="form-group">
+                    <label for="updateShareName">Share Name:</label>
+                    <input type="text" id="updateShareName" name="updateShareName" required>
+                </div>
+                <div class="form-group">
+                    <label for="updateBoughtPrice">Bought Price:</label>
+                    <input type="number" id="updateBoughtPrice" name="updateBoughtPrice" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="updateInvestedValue">Invested Value:</label>
+                    <input type="number" id="updateInvestedValue" name="updateInvestedValue" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="updateQuantity">Quantity:</label>
+                    <input type="number" id="updateQuantity" name="updateQuantity" required>
+                </div>
+                <div class="form-group">
+                    <label for="updateDate">Date:</label>
+                    <input type="date" id="updateDate" name="updateDate" required>
+                </div>
+                <button type="submit">Update Investment</button>
+            </form>
+        </div>
+    </div>
+
+    <table id="investmentsTable">
+        <thead>
+            <tr>
+                <th>Share Name</th>
+                <th>Bought Price</th>
+                <th>Invested Value</th>
+                <th>Quantity</th>
+                <th>Date</th>
+                <th>Current Price</th>
+		<th>Profit</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="investmentsBody">
+            <tr>
+                <td colspan="7" class="no-data">Loading...</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Loading Indicator -->
+    <div class="loading" id="loadingIndicator">Loading...</div>
+
+    <button onclick="logout()">Logout</button>
+
+    <!-- Firebase Configuration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, addDoc, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBUtgwiu95ep-MOVwZ9GA2MvKkJprqkRMM",
+            authDomain: "omnamonarayana-60df8.firebaseapp.com",
+            projectId: "omnamonarayana-60df8",
+            storageBucket: "omnamonarayana-60df8.appspot.com",
+            messagingSenderId: "475382443139",
+            appId: "1:475382443139:web:dd741d5f927e448f6d4d4e"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Fetch user investments
+        // Fetch user investments
+async function fetchUserInvestments(platform) {
+    document.getElementById('loadingIndicator').style.display = 'block';
+    const investmentsBody = document.getElementById('investmentsBody');
+    investmentsBody.innerHTML = '<tr><td colspan="8" class="no-data">Loading...</td></tr>';
+
+    const useremail = localStorage.getItem('useremail');
+    const investmentsRef = collection(db, 'INVESTMENTS');
+    const q = query(investmentsRef, where("PLATFORM", "==", platform), where("email", "==", useremail));
+    const querySnapshot = await getDocs(q);
+
+    const investments = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    document.getElementById('loadingIndicator').style.display = 'none';
+    investmentsBody.innerHTML = '';
+
+    if (investments.length === 0) {
+        investmentsBody.innerHTML = '<tr><td colspan="8" class="no-data">No investments found</td></tr>';
+        return;
+    }
+
+    investments.forEach((investment) => {
+        const dateValue = investment.Date;
+        let displayDate = 'N/A'; // Default display value for date
+        if (dateValue && dateValue.toDate && typeof dateValue.toDate === 'function') {
+            // Convert to Date if Date is a Firestore Timestamp
+            displayDate = dateValue.toDate().toLocaleDateString();
+        } else if (dateValue instanceof Date) {
+            // Directly use if Date is a Date object
+            displayDate = dateValue.toLocaleDateString();
+        }
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${investment.SHARENAME || 'N/A'}</td>
+            <td>${investment.BOUGHTPRICE || 'N/A'}</td>
+            <td>${investment.INVESTEDVALUE || 'N/A'}</td>
+            <td>${investment.QUANTITY || 'N/A'}</td>
+            <td>${displayDate}</td>
+            <td>
+                <input type="number" id="currentPrice-${investment.id}" value="${investment.CURRENTPRICE || ''}" placeholder="Enter current price" oninput="updateProfit('${investment.id}', ${investment.QUANTITY}, ${investment.INVESTEDVALUE})">
+            </td>
+            <td id="profit-${investment.id}">0.00</td> <!-- Profit column -->
+            <td>
+                <button class="delete-btn" onclick="deleteInvestment('${investment.id}')">Delete</button>
+                <button class="update-btn" onclick="openUpdateModal('${investment.id}', '${investment.SHARENAME}', ${investment.BOUGHTPRICE}, ${investment.INVESTEDVALUE}, ${investment.QUANTITY}, '${investment.Date ? investment.Date.toDate().toISOString().split('T')[0] : ''}')">Update</button>
+            </td>
+        `;
+        investmentsBody.appendChild(row);
+    });
+}
+
+// Function to update profit
+window.updateProfit = function(id, quantity, investedValue) {
+    const currentPriceInput = document.getElementById(`currentPrice-${id}`);
+    const profitCell = document.getElementById(`profit-${id}`);
+
+    const currentPrice = parseFloat(currentPriceInput.value);
+    if (isNaN(currentPrice)) {
+        profitCell.textContent = '0.00';
+        return;
+    }
+
+    const profit = (quantity * currentPrice) - investedValue;
+    profitCell.textContent = profit.toFixed(2);
+};
+
+
+        // Open the modal for adding investment
+        window.openModal = function() {
+            document.getElementById('investmentModal').style.display = 'block';
+        };
+
+        // Close the modal for adding investment
+        window.closeModal = function() {
+            document.getElementById('investmentModal').style.display = 'none';
+        };
+
+        // Open the modal for updating investment
+        window.openUpdateModal = function(id, shareName, boughtPrice, investedValue, quantity, date) {
+            document.getElementById('updateId').value = id;
+            document.getElementById('updateShareName').value = shareName;
+            document.getElementById('updateBoughtPrice').value = boughtPrice;
+            document.getElementById('updateInvestedValue').value = investedValue;
+            document.getElementById('updateQuantity').value = quantity;
+            document.getElementById('updateDate').value = date;
+            document.getElementById('updateModal').style.display = 'block';
+        };
+
+        // Close the modal for updating investment
+        window.closeUpdateModal = function() {
+            document.getElementById('updateModal').style.display = 'none';
+        };
+
+        // Add new investment
+        window.addInvestment = async function() {
+            const shareName = document.getElementById('shareName').value;
+            const boughtPrice = parseFloat(document.getElementById('boughtPrice').value);
+            const investedValue = parseFloat(document.getElementById('investedValue').value);
+            const quantity = parseInt(document.getElementById('quantity').value, 10);
+            const date = new Date(document.getElementById('date').value);
+            const platform = document.getElementById('platform').value;
+            const useremail = localStorage.getItem('useremail');
+
+            if (!shareName || isNaN(boughtPrice) || isNaN(investedValue) || isNaN(quantity) || isNaN(date.getTime())) {
+                alert('Please fill out all fields correctly.');
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, 'INVESTMENTS'), {
+                    SHARENAME: shareName,
+                    BOUGHTPRICE: boughtPrice,
+                    INVESTEDVALUE: investedValue,
+                    QUANTITY: quantity,
+                    Date: date,
+                    PLATFORM: platform,
+                    email: useremail
+                });
+                alert('Investment added successfully!');
+                closeModal();
+                handlePlatformChange(); // Refresh investments
+            } catch (error) {
+                console.error('Error adding investment:', error.message);
+                alert('Error adding investment: ' + error.message);
+            }
+        };
+
+        // Update investment
+        window.updateInvestment = async function() {
+            const id = document.getElementById('updateId').value;
+            const shareName = document.getElementById('updateShareName').value;
+            const boughtPrice = parseFloat(document.getElementById('updateBoughtPrice').value);
+            const investedValue = parseFloat(document.getElementById('updateInvestedValue').value);
+            const quantity = parseInt(document.getElementById('updateQuantity').value, 10);
+            const date = new Date(document.getElementById('updateDate').value);
+
+            if (!shareName || isNaN(boughtPrice) || isNaN(investedValue) || isNaN(quantity) || isNaN(date.getTime())) {
+                alert('Please fill out all fields correctly.');
+                return;
+            }
+
+            try {
+                await updateDoc(doc(db, 'INVESTMENTS', id), {
+                    SHARENAME: shareName,
+                    BOUGHTPRICE: boughtPrice,
+                    INVESTEDVALUE: investedValue,
+                    QUANTITY: quantity,
+                    Date: date
+                });
+                alert('Investment updated successfully!');
+                closeUpdateModal();
+                handlePlatformChange(); // Refresh investments
+            } catch (error) {
+                console.error('Error updating investment:', error.message);
+                alert('Error updating investment: ' + error.message);
+            }
+        };
+
+        // Delete investment
+        window.deleteInvestment = async function(id) {
+            if (confirm('Are you sure you want to delete this investment?')) {
+                try {
+                    await deleteDoc(doc(db, 'INVESTMENTS', id));
+                    alert('Investment deleted successfully!');
+                    handlePlatformChange(); // Refresh investments
+                } catch (error) {
+                    console.error('Error deleting investment:', error.message);
+                    alert('Error deleting investment: ' + error.message);
+                }
+            }
+        };
+
+        // Handle platform change
+        window.handlePlatformChange = function() {
+            const platform = document.getElementById('platformSelect').value;
+            fetchUserInvestments(platform);
+        };
+
+        // Logout function
+        window.logout = function() {
+            signOut(auth).then(() => {
+                alert('Successfully logged out.');
+                window.location.href = 'login.html'; // Redirect to login page or another page
+            }).catch((error) => {
+                console.error('Error logging out:', error.message);
+                alert('Error logging out: ' + error.message);
+            });
+        };
+
+        // Initial load
+        handlePlatformChange(); // Load data for the default platform
+    </script>
+</body>
+</html>
